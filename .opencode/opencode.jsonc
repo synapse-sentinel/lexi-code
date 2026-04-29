@@ -6,7 +6,16 @@
       "packages/opencode/migration/*": "deny",
     },
   },
-  "mcp": {},
+  "mcp": {
+    // Lexi MCP — active when repo is cloned at /workspace (agentctl containers)
+    "lexi": {
+      "type": "local",
+      "command": ["php", "/workspace/artisan", "mcp:start", "lexi"],
+    },
+  },
+  "agent": {
+    "default": "lexi",
+  },
   "tools": {
     "github-triage": false,
     "github-pr-search": false,
