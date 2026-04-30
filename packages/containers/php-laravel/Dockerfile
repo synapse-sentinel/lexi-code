@@ -4,6 +4,7 @@ FROM ${REGISTRY}/build/bun-node:24.04
 ARG DEBIAN_FRONTEND=noninteractive
 ARG PHP_VERSION=8.4
 ARG GH_VERSION=2.71.0
+ARG OPENCODE_VERSION=0.3.55
 
 SHELL ["/bin/bash", "-lc"]
 
@@ -40,7 +41,23 @@ RUN set -euo pipefail; \
   | tar -xzf - -C /usr/local --strip-components=1 "gh_${GH_VERSION}_linux_${gh_arch}/bin/gh"; \
   gh --version
 
+# opencode
+RUN set -euo pipefail; \
+  npm install -g opencode-ai@${OPENCODE_VERSION}; \
+  opencode --version
+
+# Standard agentctl run-task entrypoint (opencode variant)
+RUN printf '#!/bin/sh\nexec opencode run -p "$@"\n' \
+    > /usr/local/bin/run-task \
+    && chmod +x /usr/local/bin/run-task
+
+# Agent user
+RUN useradd -m -s /bin/bash agent \
+    && mkdir -p /home/agent/workspace \
+    && chown -R agent:agent /home/agent
+
 # Bake Lexi agent definition globally so every workspace gets her
 COPY agent/lexi.md /root/.opencode/agent/lexi.md
 
-WORKDIR /workspace
+USER agent
+WORKDIR /home/agent/workspace
